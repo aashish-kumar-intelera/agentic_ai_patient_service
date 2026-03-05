@@ -1,0 +1,6 @@
+-- V1__baseline.sql
+-- Baseline migration for patient-service.
+-- Establishes the initial empty schema state.
+-- All domain table migrations follow from V2__ onwards.
+-- No schema changes in this baseline; it serves as the starting
+-- point for incremental versioned migrations.

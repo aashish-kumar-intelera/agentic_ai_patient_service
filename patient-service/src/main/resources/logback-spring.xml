@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+
+  <!-- Read service name from Spring application context -->
+  <springProperty scope="context" name="serviceName"
+                  source="spring.application.name"
+                  defaultValue="patient-service"/>
+
+  <!-- =========================================================
+       CONSOLE appender: structured JSON via LogstashEncoder
+       MDC fields (traceId, spanId, requestId, userId) are
+       automatically included by LogstashEncoder when present.
+       ========================================================= -->
+  <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+    <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+      <customFields>{"service":"${serviceName}"}</customFields>
+      <fieldNames>
+        <timestamp>timestamp</timestamp>
+        <message>message</message>
+        <logger>logger</logger>
+        <thread>thread</thread>
+        <!-- Remove default numeric level value; keep textual "level" field -->
+        <levelValue>[ignore]</levelValue>
+      </fieldNames>
+    </encoder>
+  </appender>
+
+  <!-- =========================================================
+       FILE appender: rolling daily log files (prod only)
+       ========================================================= -->
+  <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <file>logs/${serviceName}.log</file>
+    <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+      <fileNamePattern>logs/${serviceName}.%d{yyyy-MM-dd}.log</fileNamePattern>
+      <maxHistory>30</maxHistory>
+      <totalSizeCap>1GB</totalSizeCap>
+    </rollingPolicy>
+    <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+      <customFields>{"service":"${serviceName}"}</customFields>
+    </encoder>
+  </appender>
+
+  <!-- =========================================================
+       Profile: local — console, INFO root, DEBUG for service
+       ========================================================= -->
+  <springProfile name="local">
+    <root level="INFO">
+      <appender-ref ref="CONSOLE"/>
+    </root>
+    <logger name="com.intelera.agentic.patient" level="DEBUG" additivity="false">
+      <appender-ref ref="CONSOLE"/>
+    </logger>
+  </springProfile>
+
+  <!-- =========================================================
+       Profile: dev — console, INFO
+       ========================================================= -->
+  <springProfile name="dev">
+    <root level="INFO">
+      <appender-ref ref="CONSOLE"/>
+    </root>
+  </springProfile>
+
+  <!-- =========================================================
+       Profile: test — console, WARN (suppress most output)
+       ========================================================= -->
+  <springProfile name="test">
+    <root level="WARN">
+      <appender-ref ref="CONSOLE"/>
+    </root>
+    <logger name="com.intelera.agentic.patient" level="INFO" additivity="false">
+      <appender-ref ref="CONSOLE"/>
+    </logger>
+  </springProfile>
+
+  <!-- =========================================================
+       Profile: prod — console + file, WARN only
+       ========================================================= -->
+  <springProfile name="prod">
+    <root level="WARN">
+      <appender-ref ref="CONSOLE"/>
+      <appender-ref ref="FILE"/>
+    </root>
+  </springProfile>
+
+</configuration>

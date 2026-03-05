@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  SpotBugs exclusion filter for patient-service.
+
+  Documented suppressions only — each entry must have a justification comment.
+  Do NOT suppress HIGH-severity bugs without a written security review.
+-->
+<FindBugsFilter>
+
+  <!--
+    SPRING_CSRF_PROTECTION_DISABLED — SecurityConfig.securityFilterChain
+    Justification: CSRF protection is intentionally disabled for this service.
+    This is a stateless REST API secured by JWT Bearer tokens passed in the
+    Authorization header. Browser-based CSRF attacks are not applicable because:
+      1. No session cookies are issued (SessionCreationPolicy.STATELESS).
+      2. JWT tokens must be explicitly provided in the Authorization header,
+         which cross-site requests cannot read or set on behalf of a user.
+    This is the standard recommended approach for stateless REST microservices.
+    Reference: https://docs.spring.io/spring-security/reference/features/exploits/csrf.html
+               section "When to use CSRF protection"
+  -->
+  <Match>
+    <Class name="com.intelera.agentic.patient.config.SecurityConfig"/>
+    <Bug pattern="SPRING_CSRF_PROTECTION_DISABLED"/>
+  </Match>
+
+</FindBugsFilter>
